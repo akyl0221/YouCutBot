@@ -51,6 +51,8 @@ def videoMessage(bot, update):
             ffmpeg_extract_subclip(video_input, start_time, end_time, targetname=video_output)
             video = open(video_output, 'rb')
             bot.send_video(chat_id=update.message.chat_id, video=video, supports_streaming=True)
+        else:
+            bot.send_message(chat_id=update.message.chat_id, text='Wrong url it is not Youtube')
 
 
 def helpCommand(bot, update):
