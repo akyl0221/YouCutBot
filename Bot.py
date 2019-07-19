@@ -7,11 +7,10 @@ from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 from decouple import config
 
 TOKEN = config('TOKEN')
-updater = Updater(token=TOKEN, request_kwargs={'read_timeout': 1000, 'connect_timeout': 1000}) # Токен API к Telegram
+updater = Updater(token=TOKEN, request_kwargs={'read_timeout': 1000, 'connect_timeout': 1000})
 dispatcher = updater.dispatcher
 
-base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-media_dir = os.path.join(base_dir, 'YouCutBot/media')
+media_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'media')
 
 
 def startCommand(bot, update):
