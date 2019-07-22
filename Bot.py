@@ -78,7 +78,7 @@ def videoMessage(bot, update):
                         ydl.download([url])
                     name = result['title'].replace('?', '')
                     audio_input = media_dir + '/' + name + '.mp3'
-                    audio_output = media_dir + '/' + name + "-Cut.mp3"
+                    audio_output = media_dir + '/Cut.mp3'
                     bot.send_message(chat_id=update.message.chat_id, text='Конвертирование и обрезка...')
 
                     ffmpeg_extract_subclip(audio_input, start_time, end_time, targetname=audio_output)
