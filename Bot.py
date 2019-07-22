@@ -27,8 +27,9 @@ def startCommand(bot, update):
 
 def videoMessage(bot, update):
     text = update.message.text.split()
-    regex_url = re.compile(r'^(https?\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+$')
+    regex_url = re.compile(r'^(http(s)?:\/\/)?((w){3}.)?(m.youtu(be|.be))?(youtu(be|.be))?(\.com)?\/.+')
     regex_timeline = re.compile(r'(([0-9][0-9]|[0-9]):[0-5][0-9])-(([0-9][0-9]|[0-9]):[0-5][0-9])')
+
     if (len(text) == 1):
         bot.send_message(chat_id=update.message.chat_id, text='Неправильный ввод. '
                                                               'Пожалуйста введите ссылку '
@@ -46,6 +47,7 @@ def videoMessage(bot, update):
 
         if url != '':
             if timeline != '':
+                # Определение начала и конца отрезка
                 interval = timeline.split('-')
                 _from = interval[0].split(':')
                 _to = interval[1].split(':')
@@ -56,7 +58,7 @@ def videoMessage(bot, update):
                     current = start_time
                     start_time = end_time
                     end_time = current
-
+                # Настройки для конвертирования в аудио
                 ydl_opts = {
                     'format': 'best',
                     'outtmpl': 'media/%(title)s.%(ext)s',
@@ -73,16 +75,19 @@ def videoMessage(bot, update):
                 if end_time > duration:
                     bot.send_message(chat_id=update.message.chat_id, text='Выбранный промежуток длиннее чем видео')
                 else:
+                    # Скачивание видео и конвертирование
                     bot.send_message(chat_id=update.message.chat_id, text='Скачивание видео...')
                     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                         ydl.download([url])
-                    name = result['title'].replace('?', '')
+                    name = result['title'].replace('?', '').replace('"', '\'')
                     audio_input = media_dir + '/' + name + '.mp3'
                     audio_output = media_dir + '/Cut.mp3'
                     bot.send_message(chat_id=update.message.chat_id, text='Конвертирование и обрезка...')
 
+                    # Вырезание отрезка из аудио
                     ffmpeg_extract_subclip(audio_input, start_time, end_time, targetname=audio_output)
                     audio = open(audio_output, 'rb')
+                    os.remove(audio_input)
                     bot.send_message(chat_id=update.message.chat_id, text='Отправка аудио...')
                     bot.send_audio(chat_id=update.message.chat_id, audio=audio)
             else:
