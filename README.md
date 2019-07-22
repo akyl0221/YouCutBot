@@ -11,6 +11,9 @@
 
 <h2>Install<h2/>
 <p>git clone https://github.com/akyl0221/YouCutBot.git<p/>
+<p>pip install virtualenv<p/>
+<p>python3 -m venv env<p/>
+<p>source env/bin/activate<p/>
 <p>pip install youtube-dl<p/>
 <p>pip install ffmpeg<p/>
 <p>pip install ffprobe<p/>
