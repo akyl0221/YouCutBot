@@ -76,15 +76,15 @@ def videoMessage(bot, update):
                     bot.send_message(chat_id=update.message.chat_id, text='Скачивание видео...')
                     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                         ydl.download([url])
-                    name = result['title']
+                    name = result['title'].replace('?', '')
                     audio_input = media_dir + '/' + name + '.mp3'
                     audio_output = media_dir + '/' + name + "-Cut.mp3"
                     bot.send_message(chat_id=update.message.chat_id, text='Конвертирование и обрезка...')
 
                     ffmpeg_extract_subclip(audio_input, start_time, end_time, targetname=audio_output)
-                    video = open(audio_output, 'rb')
+                    audio = open(audio_output, 'rb')
                     bot.send_message(chat_id=update.message.chat_id, text='Отправка аудио...')
-                    bot.send_audio(chat_id=update.message.chat_id, audio=video)
+                    bot.send_audio(chat_id=update.message.chat_id, audio=audio)
             else:
                 bot.send_message(chat_id=update.message.chat_id, text='Пожалуйста введите промежуток вместе с адресом')
         else:
