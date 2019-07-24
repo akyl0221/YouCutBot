@@ -14,6 +14,50 @@ dispatcher = updater.dispatcher
 media_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'media')
 
 
+def download_convert(url, download):
+    ydl_opts = {
+        'format': 'best',
+        'outtmpl': 'media/%(title)s.%(ext)s',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+    }
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        if download:
+            ydl.download([url])
+        else:
+            result = ydl.extract_info(url, download=False)
+            duration = result['duration']
+            name = result['title'].replace('?', '').replace('"', '\'')
+            return duration, name
+
+
+def cut_audio(name, start_time, end_time):
+    audio_input = media_dir + '/' + name + '.mp3'
+    audio_output = media_dir + '/' + slugify(name) + '-Cut.mp3'
+
+    ffmpeg_extract_subclip(audio_input, start_time, end_time, targetname=audio_output)
+    audio = open(audio_output, 'rb')
+    os.remove(audio_input)
+    return audio, audio_output
+
+
+def get_interval(timeline):
+    interval = timeline.split('-')
+    _from = interval[0].split(':')
+    _to = interval[1].split(':')
+    start_time = (int(_from[0]) * 60) + int(_from[1])
+    end_time = (int(_to[0]) * 60) + int(_to[1])
+
+    if end_time < start_time:
+        current = start_time
+        start_time = end_time
+        end_time = current
+    return start_time, end_time
+
+
 def startCommand(bot, update):
     text = 'Привет, я YouCut бот который вырежет для тебя видео и сконвертирует его в аудио\n'\
            'Инструкция:\n' \
@@ -49,46 +93,19 @@ def videoMessage(bot, update):
         if url != '':
             if timeline != '':
                 # Определение начала и конца отрезка
-                interval = timeline.split('-')
-                _from = interval[0].split(':')
-                _to = interval[1].split(':')
-                start_time = (int(_from[0]) * 60) + int(_from[1])
-                end_time = (int(_to[0]) * 60) + int(_to[1])
-
-                if end_time < start_time:
-                    current = start_time
-                    start_time = end_time
-                    end_time = current
-                # Настройки для конвертирования в аудио
-                ydl_opts = {
-                    'format': 'best',
-                    'outtmpl': 'media/%(title)s.%(ext)s',
-                    'postprocessors': [{
-                        'key': 'FFmpegExtractAudio',
-                        'preferredcodec': 'mp3',
-                        'preferredquality': '192',
-                    }],
-                }
-                with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-                    result = ydl.extract_info(url, download=False)
-                duration = result['duration']
+                start_time, end_time = get_interval(timeline)
+                duration, name = download_convert(url, download=False)
 
                 if end_time > duration:
                     bot.send_message(chat_id=update.message.chat_id, text='Выбранный промежуток длиннее чем видео')
                 else:
                     # Скачивание видео и конвертирование
                     bot.send_message(chat_id=update.message.chat_id, text='Скачивание видео...')
-                    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-                        ydl.download([url])
-                    name = result['title'].replace('?', '').replace('"', '\'')
-                    audio_input = media_dir + '/' + name + '.mp3'
-                    audio_output = media_dir + '/' + slugify(name) + '-Cut.mp3'
+                    download_convert(url, download=True)
                     bot.send_message(chat_id=update.message.chat_id, text='Конвертирование и обрезка...')
 
                     # Вырезание отрезка из аудио
-                    ffmpeg_extract_subclip(audio_input, start_time, end_time, targetname=audio_output)
-                    audio = open(audio_output, 'rb')
-                    os.remove(audio_input)
+                    audio, audio_output = cut_audio(name, start_time, end_time)
                     bot.send_message(chat_id=update.message.chat_id, text='Отправка аудио...')
                     bot.send_audio(chat_id=update.message.chat_id, audio=audio)
                     os.remove(audio_output)
