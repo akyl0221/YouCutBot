@@ -5,6 +5,7 @@ import youtube_dl
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 from decouple import config
+from slugify import slugify
 
 TOKEN = config('TOKEN')
 updater = Updater(token=TOKEN, request_kwargs={'read_timeout': 1000, 'connect_timeout': 1000})
@@ -81,7 +82,7 @@ def videoMessage(bot, update):
                         ydl.download([url])
                     name = result['title'].replace('?', '').replace('"', '\'')
                     audio_input = media_dir + '/' + name + '.mp3'
-                    audio_output = media_dir + '/Cut.mp3'
+                    audio_output = media_dir + '/' + slugify(name) + '-Cut.mp3'
                     bot.send_message(chat_id=update.message.chat_id, text='Конвертирование и обрезка...')
 
                     # Вырезание отрезка из аудио
@@ -89,6 +90,7 @@ def videoMessage(bot, update):
                     audio = open(audio_output, 'rb')
                     os.remove(audio_input)
                     bot.send_message(chat_id=update.message.chat_id, text='Отправка аудио...')
+
                     bot.send_audio(chat_id=update.message.chat_id, audio=audio)
             else:
                 bot.send_message(chat_id=update.message.chat_id, text='Пожалуйста введите промежуток вместе с адресом')
