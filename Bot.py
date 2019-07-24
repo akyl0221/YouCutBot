@@ -90,8 +90,8 @@ def videoMessage(bot, update):
                     audio = open(audio_output, 'rb')
                     os.remove(audio_input)
                     bot.send_message(chat_id=update.message.chat_id, text='Отправка аудио...')
-
                     bot.send_audio(chat_id=update.message.chat_id, audio=audio)
+                    os.remove(audio_output)
             else:
                 bot.send_message(chat_id=update.message.chat_id, text='Пожалуйста введите промежуток вместе с адресом')
         else:
