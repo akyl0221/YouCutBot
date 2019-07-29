@@ -5,6 +5,8 @@
 <p>Youtube-dl v 2019.7.16<p/>
 <p>ffmpeg	v 1.4 <p/>
 <p>ffprobe	0.5	<p/>
+<p>slugify	3.0.3<p/>
+<p>moviepy	1.0.0<p/>
 <p>python-decouple	3.1 <p/>
 <p>python-telegram-bot	11.1.0<p/>
 
@@ -27,6 +29,8 @@ For another information see https://core.telegram.org/bots#creating-a-new-bot
 <p>pip install youtube-dl<p/>
 <p>pip install ffmpeg<p/>
 <p>pip install ffprobe<p/>
+<p>pip install moviepy<p/>
+<p>pip install python-slugify<p/>
 <p>pip install python-decouple<p/>
 <p>pip install python-telegram-bot<p/>
 <p>cd YouCutBot

@@ -1,11 +1,11 @@
 import os
 import re
-import youtube_dl
 
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
+import youtube_dl
 from decouple import config
+from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 from slugify import slugify
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 TOKEN = config('TOKEN')
 updater = Updater(token=TOKEN, request_kwargs={'read_timeout': 1000, 'connect_timeout': 1000})
@@ -48,8 +48,12 @@ def get_interval(timeline):
     interval = timeline.split('-')
     _from = interval[0].split(':')
     _to = interval[1].split(':')
-    start_time = (int(_from[0]) * 60) + int(_from[1])
-    end_time = (int(_to[0]) * 60) + int(_to[1])
+    if len(_from) == 3:
+        start_time = ((int(_from[0]) * 60) + int(_from[1])) * 60 + int(_from[2])
+        end_time = ((int(_to[0]) * 60) + int(_to[1])) * 60 + int(_to[2])
+    else:
+        start_time = (int(_from[0]) * 60) + int(_from[1])
+        end_time = (int(_to[0]) * 60) + int(_to[1])
 
     if end_time < start_time:
         current = start_time
@@ -59,7 +63,7 @@ def get_interval(timeline):
 
 
 def startCommand(bot, update):
-    text = 'Привет, я YouCut бот который вырежет для тебя видео и сконвертирует его в аудио\n'\
+    text = 'Привет, я YouCut бот который вырежет для тебя видео и сконвертирует его в аудио\n' \
            'Инструкция:\n' \
            '1) Вставьте ссылку с YouTube видео и напишите промежуток\n ' \
            'который вам надо вырезать (формат 00:00-00:00 минуты секунды) \n' \
@@ -73,7 +77,8 @@ def startCommand(bot, update):
 def videoMessage(bot, update):
     text = update.message.text.split()
     regex_url = re.compile(r'^(http(s)?:\/\/)?((w){3}.)?(m.youtu(be|.be))?(youtu(be|.be))?(\.com)?\/.+')
-    regex_timeline = re.compile(r'(([0-9][0-9]|[0-9]):[0-5][0-9])-(([0-9][0-9]|[0-9]):[0-5][0-9])')
+    regex_timeline = re.sub(r'(([0-5][0-9]|[0-9]):[0-5][0-9])-(([0-5][0-9]|[0-9]):[0-5][0-9])'
+                            r'(([0-9][0-9]|[0-9]):([0-5][0-9]|[0-9]):[0-5][0-9])-(([0-9][0-9]|[0-9]):([0-5][0-9]|[0-9]):[0-5][0-9])')
 
     if (len(text) == 1):
         bot.send_message(chat_id=update.message.chat_id, text='Неправильный ввод. '
@@ -136,4 +141,3 @@ dispatcher.add_handler(video_message_handler)
 updater.start_polling(clean=True)
 
 updater.idle()
-
