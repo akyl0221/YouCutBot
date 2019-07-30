@@ -3,14 +3,60 @@ from slugify import slugify
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 import youtube_dl
 import os
+import re
 
-
-app = Celery('YouCutBot.tasks', broker='redis://localhost//',include=['bot.tasks'])
+app = Celery('tasks', broker='redis://localhost//',include=['bot.tasks'])
 
 media_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'media')
 
 
 @app.task
+def videoConverter(bot, update):
+    text = update.message.text.split()
+    regex_url = re.compile(r'^(http(s)?:\/\/)?((w){3}.)?(m.youtu(be|.be))?(youtu(be|.be))?(\.com)?\/.+')
+    regex_timeline = re.compile(
+        r'((([0-5][0-9]|[0-9]):[0-5][0-9])-(([0-5][0-9]|[0-9]):[0-5][0-9]))|((([0-9][0-9]|[0-9]):([0-5][0-9]|[0-9]):[0-5][0-9])-(([0-9][0-9]|[0-9]):([0-5][0-9]|[0-9]):[0-5][0-9]))')
+
+    if (len(text) == 1):
+        bot.send_message(chat_id=update.message.chat_id, text='Неправильный ввод. '
+                                                              'Пожалуйста введите ссылку '
+                                                              'Youtube и временной промежуток')
+
+    else:
+        bot.send_message(chat_id=update.message.chat_id, text='Проверка введенных данных...')
+        url = ''
+        timeline = ''
+        for i in text:
+            if (re.match(regex_url, i) is not None):
+                url = i
+            if (re.match(regex_timeline, i) is not None):
+                timeline = i
+
+        if url != '':
+            if timeline != '':
+                # Определение начала и конца отрезка
+                start_time, end_time, duration, name = download_convert(url, download=False, timeline=timeline)
+
+                if end_time > duration:
+                    bot.send_message(chat_id=update.message.chat_id, text='Выбранный промежуток длиннее чем видео')
+                else:
+                    # Скачивание видео и конвертирование
+
+                    bot.send_message(chat_id=update.message.chat_id, text='Скачивание видео...')
+                    download_convert(url, download=True)
+                    bot.send_message(chat_id=update.message.chat_id, text='Конвертирование и обрезка...')
+
+                    # Вырезание отрезка из аудио
+                    audio, audio_output = cut_audio(name, start_time, end_time)
+                    bot.send_message(chat_id=update.message.chat_id, text='Отправка аудио...')
+                    bot.send_audio(chat_id=update.message.chat_id, audio=audio)
+                    os.remove(audio_output)
+            else:
+                bot.send_message(chat_id=update.message.chat_id, text='Пожалуйста введите промежуток вместе с адресом')
+        else:
+            bot.send_message(chat_id=update.message.chat_id, text='Неправильный адресс это не Youtube')
+
+
 def download_convert(url, download, timeline=0):
     ydl_opts = {
         'format': 'best',
@@ -24,6 +70,7 @@ def download_convert(url, download, timeline=0):
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         if download:
             ydl.download([url])
+
         else:
             result = ydl.extract_info(url, download=False)
             duration = result['duration']
@@ -32,7 +79,6 @@ def download_convert(url, download, timeline=0):
             return start_time, end_time, duration, name
 
 
-@app.task
 def cut_audio(name, start_time, end_time):
     files = os.listdir(media_dir)
     for file in files:

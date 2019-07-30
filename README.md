@@ -26,13 +26,8 @@ For another information see https://core.telegram.org/bots#creating-a-new-bot
 <p>pip install virtualenv<p/>
 <p>python3 -m venv env<p/>
 <p>source env/bin/activate<p/>
-<p>pip install youtube-dl<p/>
-<p>pip install ffmpeg<p/>
-<p>pip install ffprobe<p/>
-<p>pip install moviepy<p/>
-<p>pip install python-slugify<p/>
-<p>pip install python-decouple<p/>
-<p>pip install python-telegram-bot<p/>
+
+<p>pip install -r requirements<p/>
 <p>cd YouCutBot
  Create file .env and add 
     TOKEN = Your TOKEN

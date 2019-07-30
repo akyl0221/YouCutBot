@@ -1,0 +1,13 @@
+celery==4.3.0
+ffmpeg==1.4
+ffprobe==0.5
+imageio==2.5.0
+imageio-ffmpeg==0.3.0
+moviepy==1.0.0
+python-decouple==3.1
+python-slugify==3.0.3
+python-telegram-bot==11.1.0
+pytz==2019.1
+redis==3.2.1
+sqlparse==0.3.0
+youtube-dl==2019.7.30
