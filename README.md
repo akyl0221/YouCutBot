@@ -23,13 +23,9 @@ The token is a string along the lines of 110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PA
 For another information see https://core.telegram.org/bots#creating-a-new-bot
 <p/>
 <p>git clone https://github.com/akyl0221/YouCutBot.git<p/>
-<p>pip install virtualenv<p/>
-<p>python3 -m venv env<p/>
-<p>source env/bin/activate<p/>
-
-<p>pip install -r requirements<p/>
 <p>cd YouCutBot
- Create file .env and add 
+ Create file .env and add
     TOKEN = Your TOKEN
 <p/>
-<p>python Bot.py<p/>
+<p>docker-compose up<p/>
+
